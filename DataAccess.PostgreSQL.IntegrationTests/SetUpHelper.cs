@@ -18,10 +18,34 @@ namespace DataAccess.PostgreSQL.IntegrationTests
             var predicateProviderFactory = new PredicateProviderFactory();
             var predicateFactory = new PredicateFactory(predicateProviderFactory);
 
-            operations.CreateOperation = new CreateForceSaveOperation(context, predicateFactory);
-            operations.ReadOperation = new ReadOperation(context, predicateFactory);
+            operations.CreateOperation = new CreateForceSaveOperation(new DataContext(), predicateFactory);
+            operations.ReadOperation = new ReadNoTrackingOperation(new DataContext(), predicateFactory);
+            operations.UpdateOperation = new UpdateForceSaveOperation(new DataContext(), predicateFactory);
+            operations.DeleteOperation = new DeleteForceSaveOperation(new DataContext(), predicateFactory);
+
+            var testEntitiesData = new List<TestEntity>() {
+                new TestEntity { TestPropertyInt = 1, TestPropertyString = "1" },
+                new TestEntity { TestPropertyInt = 2, TestPropertyString = "2" },
+                new TestEntity { TestPropertyInt = 2, TestPropertyString = "2" },
+                new TestEntity { TestPropertyInt = 3, TestPropertyString = "3" },
+            };
+
+            context.AddRange(testEntitiesData);
+            context.SaveChanges();
+        }
+
+        public static void SetUpWithoutForceSave(CRUDOperations operations, DataContext context)
+        {
+            context.RemoveRange(context.Set<TestEntity>());
+            context.SaveChanges();
+
+            var predicateProviderFactory = new PredicateProviderFactory();
+            var predicateFactory = new PredicateFactory(predicateProviderFactory);
+
+            operations.CreateOperation = new CreateOperation(context, predicateFactory);
+            operations.ReadOperation = new ReadNoTrackingOperation(context, predicateFactory);
             operations.UpdateOperation = new UpdateOperation(context, predicateFactory);
-            operations.DeleteOperation = new DeleteForceSaveOperation(context, predicateFactory);
+            operations.DeleteOperation = new DeleteOperation(context, predicateFactory);
 
             var testEntitiesData = new List<TestEntity>() {
                 new TestEntity { TestPropertyInt = 1, TestPropertyString = "1" },
